@@ -3,7 +3,7 @@ from get_info import *
 
 if __name__ == "__main__":
     # print(get_unique_SMK_links())
-    get_unique_SMK_links()
+    # get_unique_SMK_links()
 
     # links = read_links()[0]
     # links_unique = list(set(links))
