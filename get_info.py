@@ -11,6 +11,17 @@ def get_npsn_name_address(data):
     return npsn[1:], name, address
 
 
+def get_detail_dapodik(data):
+    li_list = data.find_all('li')[1:]
+    akreditasi = li_list[0].text.split("Akreditasi : ")[-1]
+    kepala_sekolah = li_list[1].text.split("Kepala Sekolah : ")[-1]
+    operator = li_list[2].a.text
+
+    if operator == "-":
+        operator = ""
+    return akreditasi, kepala_sekolah, operator
+
+
 def get_info_for_link(link):
     response = requests.get(link, timeout=3)
     soup = BeautifulSoup(response.content, 'html.parser')
@@ -24,8 +35,14 @@ def get_info_for_link(link):
     info["name"] = name 
     info["address"] = address 
 
+    ul_list = body.find_all('ul', class_="list-group list-group")
     
+    akreditasi, kepala_sekolah, operator = get_detail_dapodik(ul_list[0])
+    info["akreditasi"] = akreditasi
+    info["kepala_sekolah"] = kepala_sekolah
+    info["operator"] = operator
 
+    print(info)
     return info
 
 
