@@ -11,5 +11,8 @@ if __name__ == "__main__":
     # print(len(links_unique))
     # write_to_csv(links_unique, "SMK_links_unique.csv")
 
-    df = get_info_for_all_links()
-    # get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/F2587991-4A7E-4885-ABF3-205321AB493C")
+    get_info_for_all_links()
+    
+    # info = get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/F2587991-4A7E-4885-ABF3-205321AB493C")
+    # info = get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/075648AC-69AA-4554-8A27-539890314311")
+    # print(info)

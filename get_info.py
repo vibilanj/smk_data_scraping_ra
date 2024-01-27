@@ -55,12 +55,11 @@ def get_summary_2(data):
 
 
 def get_summary_3(data):
-    akses_internet = data.text.split("Akses Internet : ")[-1].split("\n")[0]
-    sumber_listrik = data.text.split("Sumber Listrik : ")[-1].split("\n")[0]
-
-    font_list = data.find_all('font')
-    daya_listrik = convert_to_int(font_list[0].text)
-    luas_tanah_m2 = convert_to_int(font_list[1].text)
+    text = data.text
+    akses_internet = text.split("Akses Internet : ")[-1].split("\n")[0]
+    sumber_listrik = text.split("Sumber Listrik : ")[-1].split("\n")[0]
+    daya_listrik = convert_to_int(text.split("Daya Listrik : ")[-1].split("\n")[0])
+    luas_tanah_m2 = convert_to_int(text.split("Luas Tanah : ")[-1].split(" M")[0])
     return akses_internet, sumber_listrik, daya_listrik, luas_tanah_m2
 
 
