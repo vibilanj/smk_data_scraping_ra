@@ -5,6 +5,9 @@ from bs4 import BeautifulSoup
 def convert_to_int(num_str):
     return int(num_str.replace(",", ""))
 
+def convert_to_float(num_str):
+    return float(num_str.replace(",", ""))
+
 def get_npsn_name_address(data):
     first = data[0]
     npsn, name = first.split(") ")
@@ -65,10 +68,31 @@ def get_summary_4(data):
     sanitasi_siswa = convert_to_int(font_list[6].text)
     return ruang_kelas, laboratorium, perpustakaan, sanitasi_siswa
 
+
+def get_proses_pembelajaran(data):
+    span_list = data.find_all('span')
+    r_siswa_rombel = convert_to_float(span_list[0].text)
+    r_siswa_ruang_kelas = convert_to_float(span_list[1].text)
+    r_siswa_guru = convert_to_float(span_list[2].text)
+    p_guru_kualifikasi = convert_to_float(span_list[3].text)
+    p_guru_sertifikasi = convert_to_float(span_list[4].text)
+    p_guru_pns = convert_to_float(span_list[5].text)
+    p_ruang_kelas_layak = convert_to_float(span_list[6].text)
+    return (r_siswa_rombel, r_siswa_ruang_kelas, r_siswa_guru,
+            p_guru_kualifikasi, p_guru_sertifikasi, p_guru_pns, p_ruang_kelas_layak)
+
+
+def get_guru_status(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    guru_status_pns = convert_to_int(td_list[1].text)
+    guru_status_gtt = convert_to_int(td_list[2].text)
+    guru_status_gty = convert_to_int(td_list[3].text)
+    guru_status_honor = convert_to_int(td_list[4].text)
+    return guru_status_pns, guru_status_gtt, guru_status_gty, guru_status_honor
+
 def get_info_for_link(link):
     # response = requests.get(link)
     # response = requests.get(link, timeout=5)
-
     while True:
         try:
             response = requests.get(link, timeout=5)
@@ -121,6 +145,23 @@ def get_info_for_link(link):
     info["laboratorium"] = laboratorium
     info["perpustakaan"] = perpustakaan
     info["sanitasi_siswa"] = sanitasi_siswa
+
+    r_siswa_rombel, r_siswa_ruang_kelas, r_siswa_guru, p_guru_kualifikasi,\
+        p_guru_sertifikasi, p_guru_pns, p_ruang_kelas_layak= get_proses_pembelajaran(ul_list[1])
+    info["r_siswa_rombel"] = r_siswa_rombel
+    info["r_siswa_ruang_kelas"] = r_siswa_ruang_kelas
+    info["r_siswa_guru"] = r_siswa_guru
+    info["p_guru_kualifikasi"] = p_guru_kualifikasi
+    info["p_guru_sertifikasi"] = p_guru_sertifikasi
+    info["p_guru_pns"] = p_guru_pns
+    info["p_ruang_kelas_layak"] = p_ruang_kelas_layak
+
+    guru_status_pns, guru_status_gtt, guru_status_gty, guru_status_honor \
+        = get_guru_status(body.find('div', id="gurustatus"))
+    info["guru_status_pns"] = guru_status_pns
+    info["guru_status_gtt"] = guru_status_gtt
+    info["guru_status_gty"] = guru_status_gty
+    info["guru_status_honor"] = guru_status_honor
 
     print(info)
     return info
