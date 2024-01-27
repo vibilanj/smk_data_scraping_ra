@@ -2,13 +2,17 @@ from get_links import read_links
 import requests
 from bs4 import BeautifulSoup
 
+def convert_to_int(num_str):
+    return int(num_str.replace(",", ""))
+
 def get_npsn_name_address(data):
     first = data[0]
     npsn, name = first.split(") ")
+    npsn = convert_to_int(npsn[1:])
 
     second = str(data[1])
     address = second.split("</i> ")[1].split(" <a ")[0]
-    return npsn[1:], name, address
+    return npsn, name, address
 
 
 def get_detail_dapodik(data):
@@ -24,10 +28,10 @@ def get_detail_dapodik(data):
 
 def get_summary_1(data):
     font_list = data.find_all('font')
-    guru = font_list[0].text
-    siswa_l = font_list[1].text
-    siswa_p = font_list[2].text
-    rombongan_belajar = font_list[3].text
+    guru = convert_to_int(font_list[0].text)
+    siswa_l = convert_to_int(font_list[1].text)
+    siswa_p = convert_to_int(font_list[2].text)
+    rombongan_belajar = convert_to_int(font_list[3].text)
     return guru, siswa_l, siswa_p, rombongan_belajar
 
 
@@ -44,16 +48,36 @@ def get_summary_2(data):
 
 
 def get_summary_3(data):
-    pass
+    akses_internet = data.text.split("Akses Internet : ")[-1].split("\n")[0]
+    sumber_listrik = data.text.split("Sumber Listrik : ")[-1].split("\n")[0]
+
+    font_list = data.find_all('font')
+    daya_listrik = convert_to_int(font_list[0].text)
+    luas_tanah_m2 = convert_to_int(font_list[1].text)
+    return akses_internet, sumber_listrik, daya_listrik, luas_tanah_m2
 
 
 def get_summary_4(data):
-    pass
-
+    font_list = data.find_all('font')
+    ruang_kelas  = convert_to_int(font_list[0].text)
+    laboratorium = convert_to_int(font_list[2].text)
+    perpustakaan = convert_to_int(font_list[4].text)
+    sanitasi_siswa = convert_to_int(font_list[6].text)
+    return ruang_kelas, laboratorium, perpustakaan, sanitasi_siswa
 
 def get_info_for_link(link):
     # response = requests.get(link)
-    response = requests.get(link, timeout=5)
+    # response = requests.get(link, timeout=5)
+
+    while True:
+        try:
+            response = requests.get(link, timeout=5)
+            if response.status_code == 200:
+                break
+            # If 404, then add to list of failed links
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+
     soup = BeautifulSoup(response.content, 'html.parser')
     body = soup.body
 
@@ -86,11 +110,19 @@ def get_info_for_link(link):
     info["mbs"] = mbs 
     info["semester_data"] = semester_data
 
+    akses_internet, sumber_listrik, daya_listrik, luas_tanah_m2 = get_summary_3(summary_divs[2])
+    info["akses_internet"] = akses_internet
+    info["sumber_listrik"] = sumber_listrik
+    info["daya_listrik"] = daya_listrik
+    info["luas_tanah_m2"] = luas_tanah_m2
+
+    ruang_kelas, laboratorium, perpustakaan, sanitasi_siswa = get_summary_4(summary_divs[3])
+    info["ruang_kelas"] = ruang_kelas
+    info["laboratorium"] = laboratorium
+    info["perpustakaan"] = perpustakaan
+    info["sanitasi_siswa"] = sanitasi_siswa
+
     print(info)
-
-    _ = get_summary_3(summary_divs[2])
-    _ = get_summary_4(summary_divs[3])
-
     return info
 
 
