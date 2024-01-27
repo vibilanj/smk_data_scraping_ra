@@ -90,6 +90,29 @@ def get_guru_status(data):
     guru_status_honor = convert_to_int(td_list[4].text)
     return guru_status_pns, guru_status_gtt, guru_status_gty, guru_status_honor
 
+
+def get_guru_sertifikasi(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    guru_sertifikasi_sudah = convert_to_int(td_list[1].text)
+    guru_sertifikasi_belum = convert_to_int(td_list[2].text)
+    return guru_sertifikasi_sudah, guru_sertifikasi_belum
+
+
+def get_guru_ijazah(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    guru_ijazah_kurang_dari_S1 = convert_to_int(td_list[1].text)
+    guru_ijazah_S1_atau_lebih = convert_to_int(td_list[2].text)
+    guru_ijazah_data_kosong = convert_to_int(td_list[3].text)
+    return guru_ijazah_kurang_dari_S1, guru_ijazah_S1_atau_lebih, guru_ijazah_data_kosong
+
+
+def get_guru_jenis_kelamin(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    guru_jk_laki_laki = convert_to_int(td_list[1].text)
+    guru_jk_perempuan = convert_to_int(td_list[2].text)
+    return guru_jk_laki_laki, guru_jk_perempuan 
+
+
 def get_info_for_link(link):
     # response = requests.get(link)
     # response = requests.get(link, timeout=5)
@@ -162,6 +185,20 @@ def get_info_for_link(link):
     info["guru_status_gtt"] = guru_status_gtt
     info["guru_status_gty"] = guru_status_gty
     info["guru_status_honor"] = guru_status_honor
+
+    guru_sertifikasi_sudah, guru_sertifikasi_belum = get_guru_sertifikasi(body.find('div', id="gurusertifikasi"))
+    info["guru_sertifikasi"] = guru_sertifikasi_sudah
+    info["guru_belum_sertifikasi"] = guru_sertifikasi_belum
+
+    guru_ijazah_kurang_dari_S1, guru_ijazah_S1_atau_lebih, guru_ijazah_data_kosong \
+        = get_guru_ijazah(body.find('div', id="guruijazah"))
+    info["guru_ijazah_kurang_dari_S1"] = guru_ijazah_kurang_dari_S1
+    info["guru_ijazah_S1_atau_lebih"] = guru_ijazah_S1_atau_lebih
+    info["guru_ijazah_data_kosong"] = guru_ijazah_data_kosong
+
+    guru_jk_laki_laki, guru_jk_perempuan = get_guru_jenis_kelamin(body.find('div', id="gurujeniskelamin"))
+    info["guru_jk_laki_laki"] = guru_jk_laki_laki
+    info["guru_jk_perempuan"] = guru_jk_perempuan
 
     print(info)
     return info
