@@ -113,6 +113,29 @@ def get_guru_jenis_kelamin(data):
     return guru_jk_laki_laki, guru_jk_perempuan 
 
 
+def get_tk_status(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    tk_status_pns = convert_to_int(td_list[1].text)
+    tk_status_honor = convert_to_int(td_list[2].text)
+    return tk_status_pns, tk_status_honor
+
+
+def get_tk_ijazah(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    tk_total = convert_to_int(td_list[0].text)
+    tk_ijazah_kurang_dari_S1 = convert_to_int(td_list[1].text)
+    tk_ijazah_S1_atau_lebih = convert_to_int(td_list[2].text)
+    tk_ijazah_data_kosong = convert_to_int(td_list[3].text)
+    return tk_total, tk_ijazah_kurang_dari_S1, tk_ijazah_S1_atau_lebih, tk_ijazah_data_kosong
+
+
+def get_tk_jenis_kelamin(data):
+    td_list = data.find_all('td', class_ = "text-right")
+    tk_jk_laki_laki = convert_to_int(td_list[1].text)
+    tk_jk_perempuan = convert_to_int(td_list[2].text)
+    return tk_jk_laki_laki, tk_jk_perempuan
+
+
 def get_info_for_link(link):
     # response = requests.get(link)
     # response = requests.get(link, timeout=5)
@@ -199,6 +222,21 @@ def get_info_for_link(link):
     guru_jk_laki_laki, guru_jk_perempuan = get_guru_jenis_kelamin(body.find('div', id="gurujeniskelamin"))
     info["guru_jk_laki_laki"] = guru_jk_laki_laki
     info["guru_jk_perempuan"] = guru_jk_perempuan
+
+    tk_status_pns, tk_status_honor = get_tk_status(body.find('div', id="ptkstatus"))
+    info["tk_status_pns"] = tk_status_pns
+    info["tk_status_honor"] = tk_status_honor
+
+    tk_total, tk_ijazah_kurang_dari_S1, tk_ijazah_S1_atau_lebih, tk_ijazah_data_kosong \
+        = get_tk_ijazah(body.find('div', id="ptkijazah"))
+    info["tk_total"] = tk_total
+    info["tk_ijazah_kurang_dari_S1"] = tk_ijazah_kurang_dari_S1
+    info["tk_ijazah_S1_atau_lebih"] = tk_ijazah_S1_atau_lebih
+    info["tk_ijazah_data_kosong"] = tk_ijazah_data_kosong
+
+    tk_jk_laki_laki, tk_jk_perempuan = get_tk_jenis_kelamin(body.find('div', id="ptkjeniskelamin"))
+    info["tk_jk_laki_laki"] = tk_jk_laki_laki
+    info["tk_jk_perempuan"] = tk_jk_perempuan
 
     print(info)
     return info
