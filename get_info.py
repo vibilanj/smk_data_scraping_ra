@@ -3,6 +3,8 @@ import requests
 from bs4 import BeautifulSoup
 
 def convert_to_int(num_str):
+    if num_str == "":
+        return None
     return int(num_str.replace(",", ""))
 
 def convert_to_float(num_str):
@@ -136,6 +138,11 @@ def get_tk_jenis_kelamin(data):
     return tk_jk_laki_laki, tk_jk_perempuan
 
 
+def get_nilai_akreditasi(data):
+    nilai_akreditasi_tahun = data.text.split("Tahun : ")[-1].split("\n")[0]
+    nilai_akreditasi_akhir = convert_to_int(data.text.split("Nilai Akhir : ")[-1].split("\n")[0])
+    return nilai_akreditasi_tahun, nilai_akreditasi_akhir
+
 def get_info_for_link(link):
     # response = requests.get(link)
     # response = requests.get(link, timeout=5)
@@ -237,6 +244,10 @@ def get_info_for_link(link):
     tk_jk_laki_laki, tk_jk_perempuan = get_tk_jenis_kelamin(body.find('div', id="ptkjeniskelamin"))
     info["tk_jk_laki_laki"] = tk_jk_laki_laki
     info["tk_jk_perempuan"] = tk_jk_perempuan
+
+    nilai_akreditasi_tahun, nilai_akreditasi_akhir = get_nilai_akreditasi(body.find('div', id="dataakreditasi"))
+    info["nilai_akreditasi_tahun"] = nilai_akreditasi_tahun
+    info["nilai_akreditasi_akhir"] = nilai_akreditasi_akhir
 
     print(info)
     return info
