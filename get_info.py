@@ -27,6 +27,7 @@ def get_detail_dapodik(data):
     akreditasi = li_list[0].text.split("Akreditasi : ")[-1]
     kepala_sekolah = li_list[1].text.split("Kepala Sekolah : ")[-1]
     operator = li_list[2].a.text
+    # TODO: kepala sekolah is missing in some links, fix this
 
     if operator == "-":
         operator = ""
@@ -257,9 +258,6 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
-    print(len(links))
-    links = links[:5]
-
     for link in tqdm(links):
         print(link)
         info = get_info_for_link(link)
