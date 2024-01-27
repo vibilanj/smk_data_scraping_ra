@@ -57,4 +57,4 @@ def read_links():
     with open("SMK_links.csv", newline='') as file:
         rd = csv.reader(file)
         links = list(rd)
-    return links
+    return links[0]

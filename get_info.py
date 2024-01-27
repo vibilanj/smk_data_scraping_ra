@@ -1,6 +1,8 @@
 from get_links import read_links
 import requests
 from bs4 import BeautifulSoup
+import pandas as pd
+from tqdm import tqdm
 
 def convert_to_int(num_str):
     if num_str == "":
@@ -249,10 +251,20 @@ def get_info_for_link(link):
     info["nilai_akreditasi_tahun"] = nilai_akreditasi_tahun
     info["nilai_akreditasi_akhir"] = nilai_akreditasi_akhir
 
-    print(info)
     return info
 
 
 def get_info_for_all_links():
-    links = read_links()[0]
+    df = pd.DataFrame()
+
+    links = read_links()
     print(len(links))
+    links = links[:5]
+
+    for link in tqdm(links):
+        print(link)
+        info = get_info_for_link(link)
+        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+
+    df.to_csv("SMK_full_info.csv", index=False)
+    return df
