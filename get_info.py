@@ -1,4 +1,4 @@
-from get_links import read_links
+from get_links import read_links, write_to_csv
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -23,11 +23,10 @@ def get_npsn_name_address(data):
 
 
 def get_detail_dapodik(data):
-    li_list = data.find_all('li')[1:]
-    akreditasi = li_list[0].text.split("Akreditasi : ")[-1]
-    kepala_sekolah = li_list[1].text.split("Kepala Sekolah : ")[-1]
-    operator = li_list[2].a.text
-    # TODO: kepala sekolah is missing in some links, fix this
+    text = data.text
+    akreditasi = text.split("Akreditasi : ")[-1].split("\n")[0]
+    kepala_sekolah = text.split("Kepala Sekolah : ")[-1].split("\n")[0]
+    operator = text.split("Operator : ")[-1].split("\n")[0]
 
     if operator == "-":
         operator = ""
@@ -153,7 +152,8 @@ def get_info_for_link(link):
             response = requests.get(link, timeout=5)
             if response.status_code == 200:
                 break
-            # If 404, then add to list of failed links
+            elif response.status_code == 404 or response.status_code == 500:
+                return None
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
 
@@ -258,10 +258,17 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
+    broken_links = []
+    
     for link in tqdm(links):
         print(link)
         info = get_info_for_link(link)
+
+        if info is None:
+            broken_links.append(link)
+            continue
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
     df.to_csv("SMK_full_info.csv", index=False)
+    write_to_csv(broken_links, "broken_links.csv")
     return df
