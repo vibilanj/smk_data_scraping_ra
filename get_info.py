@@ -9,8 +9,17 @@ def convert_to_int(num_str):
         return None
     return int(num_str.replace(",", ""))
 
+
 def convert_to_float(num_str):
     return float(num_str.replace(",", ""))
+
+
+def get_info_from_text(text, label):
+    info = text.split(label)[-1].split("\n")[0]
+    info = info.replace('\xa0', ' ')
+    info = info.replace('\r', '')
+    return info
+
 
 def get_npsn_name_address(data):
     first = data[0]
@@ -24,9 +33,9 @@ def get_npsn_name_address(data):
 
 def get_detail_dapodik(data):
     text = data.text
-    akreditasi = text.split("Akreditasi : ")[-1].split("\n")[0]
-    kepala_sekolah = text.split("Kepala Sekolah : ")[-1].split("\n")[0]
-    operator = text.split("Operator : ")[-1].split("\n")[0]
+    akreditasi = get_info_from_text(text, "Akreditasi : ")
+    kepala_sekolah = get_info_from_text(text, "Kepala Sekolah : ")
+    operator = get_info_from_text(text, "Operator : ")
 
     if operator == "-":
         operator = ""
@@ -43,22 +52,22 @@ def get_summary_1(data):
 
 
 def get_summary_2(data):
-    font_list = data.find_all('font')
-    kurikulum = font_list[0].text.replace('\xa0', ' ')
-    penyelenggaraan = data.text.split("Penyelenggaraan : ")[-1].split("\n")[0]
+    text = data.text
+    kurikulum = get_info_from_text(text, "Kurikulum : ")
+    penyelenggaraan = get_info_from_text(text, "Penyelenggaraan : ")
     
     mbs_icon = data.find('i', class_="glyphicon-check")
     mbs = str(mbs_icon is not None)
 
-    semester_data = font_list[1].text
+    semester_data = get_info_from_text(text, "Semester Data : ")
     return kurikulum, penyelenggaraan, mbs, semester_data
 
 
 def get_summary_3(data):
     text = data.text
-    akses_internet = text.split("Akses Internet : ")[-1].split("\n")[0]
-    sumber_listrik = text.split("Sumber Listrik : ")[-1].split("\n")[0]
-    daya_listrik = convert_to_int(text.split("Daya Listrik : ")[-1].split("\n")[0])
+    akses_internet = get_info_from_text(text, "Akses Internet : ")
+    sumber_listrik = get_info_from_text(text, "Sumber Listrik : ")
+    daya_listrik = convert_to_int(get_info_from_text(text, "Daya Listrik : "))
     luas_tanah_m2 = convert_to_int(text.split("Luas Tanah : ")[-1].split(" M")[0])
     return akses_internet, sumber_listrik, daya_listrik, luas_tanah_m2
 
@@ -140,13 +149,12 @@ def get_tk_jenis_kelamin(data):
 
 
 def get_nilai_akreditasi(data):
-    nilai_akreditasi_tahun = data.text.split("Tahun : ")[-1].split("\n")[0]
-    nilai_akreditasi_akhir = convert_to_int(data.text.split("Nilai Akhir : ")[-1].split("\n")[0])
+    text = data.text
+    nilai_akreditasi_tahun = get_info_from_text(text, "Tahun : ")
+    nilai_akreditasi_akhir = convert_to_int(get_info_from_text(text, "Nilai Akhir : "))
     return nilai_akreditasi_tahun, nilai_akreditasi_akhir
 
 def get_info_for_link(link):
-    # response = requests.get(link)
-    # response = requests.get(link, timeout=5)
     while True:
         try:
             response = requests.get(link, timeout=5)
@@ -258,11 +266,21 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
+    links = links[650:] # TEMPORARY
     broken_links = []
-    
+    scraping_errors = []
+
     for link in tqdm(links):
         print(link)
-        info = get_info_for_link(link)
+        print("broken: ", len(broken_links))
+        print("errors: ", len(scraping_errors))
+        print("\n")
+
+        try:
+            info = get_info_for_link(link)
+        except:
+            scraping_errors.append(link)
+            continue
 
         if info is None:
             broken_links.append(link)
@@ -271,4 +289,5 @@ def get_info_for_all_links():
 
     df.to_csv("SMK_full_info.csv", index=False)
     write_to_csv(broken_links, "broken_links.csv")
+    write_to_csv(scraping_errors, "scraping_errors.csv")
     return df
