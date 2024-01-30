@@ -24,7 +24,7 @@ def get_info_from_text(text, label):
 def get_npsn_name_address(data):
     first = data[0]
     npsn, name = first.split(") ", 1)
-    npsn = convert_to_int(npsn[1:])
+    npsn = npsn[1:]
 
     second = str(data[1])
     address = second.split("</i> ")[1].split(" <a ")[0]
@@ -266,7 +266,7 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
-    links = links[1635:] # TEMPORARY
+    links = links[3425:] # TEMPORARY
     broken_links = []
     scraping_errors = []
 
