@@ -21,4 +21,6 @@ if __name__ == "__main__":
     # info = get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/AE6D9911-C5BA-467A-B187-B9962B3FBC96")
     # info = get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/BB86AC1D-BD71-4CBF-B711-ED6B83D3E8E3")
     # info = get_info_for_link("https://sekolah.data.kemdikbud.go.id/index.php/Chome/profil/C2190AF1-6420-4554-9171-6D1591662BF7")
+
+    # info = get_info_for_link("")
     # print(info)

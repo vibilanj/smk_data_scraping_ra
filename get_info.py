@@ -267,6 +267,13 @@ def get_info_for_all_links():
 
     links = read_links()
     links = links[3425:] # TEMPORARY
+
+    # links[0:3000]
+    # links[3000:6000]
+    # links[6000:9000]
+    # links[9000:12000]
+    # links[12000:]
+
     broken_links = []
     scraping_errors = []
 
