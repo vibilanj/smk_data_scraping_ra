@@ -23,7 +23,7 @@ def get_info_from_text(text, label):
 
 def get_npsn_name_address(data):
     first = data[0]
-    npsn, name = first.split(") ")
+    npsn, name = first.split(") ", 1)
     npsn = convert_to_int(npsn[1:])
 
     second = str(data[1])
@@ -266,7 +266,7 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
-    links = links[650:] # TEMPORARY
+    links = links[1635:] # TEMPORARY
     broken_links = []
     scraping_errors = []
 
@@ -278,12 +278,14 @@ def get_info_for_all_links():
 
         try:
             info = get_info_for_link(link)
-        except:
+        except Exception as _:
             scraping_errors.append(link)
+            write_to_csv(scraping_errors, "scraping_errors.csv")
             continue
 
         if info is None:
             broken_links.append(link)
+            write_to_csv(broken_links, "broken_links.csv")
             continue
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
