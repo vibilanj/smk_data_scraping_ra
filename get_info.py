@@ -266,7 +266,7 @@ def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
-    links = links[9400:] # TEMPORARY
+    links = links[12400:] # TEMPORARY
 
     # links[0:3000]
     # links[3000:6000]
