@@ -158,7 +158,8 @@ def get_nilai_akreditasi(data):
     return nilai_akreditasi_tahun, nilai_akreditasi_akhir
 
 def get_info_from_page(link, page):
-    soup = BeautifulSoup(page, 'html.parser')
+    # soup = BeautifulSoup(page, 'html.parser')
+    soup = BeautifulSoup(page, 'lxml')
     body = soup.body
 
     info = {}
@@ -255,55 +256,64 @@ def get_info_from_page(link, page):
     return info
 
 
-def get_info_for_link(link):
-    while True:
-        try:
-            response = requests.get(link, timeout=5)
-            if response.status_code == 200:
-                break
-            elif response.status_code == 404 or response.status_code == 500:
-                return None
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
+# TODO: remove original function
+# def get_info_for_link(link):
+#     while True:
+#         try:
+#             response = requests.get(link, timeout=5)
+#             if response.status_code == 200:
+#                 break
+#             elif response.status_code == 404 or response.status_code == 500:
+#                 return None
+#         except requests.exceptions.RequestException as e:
+#             print(f"An error occurred: {e}")
 
-    return get_info_from_page(link, response.content)
+#     return get_info_from_page(link, response.content)
+
+
+# def get_info_for_all_links_with_scraping ():
+#     df = pd.DataFrame()
+
+#     links = read_links()
+#     broken_links = []
+#     scraping_errors = []
+
+#     for link in tqdm(links):
+#         try:
+#             info = get_info_for_link(link)
+#         except Exception as _:
+#             scraping_errors.append(link)
+#             write_to_csv(scraping_errors, "scraping_errors.csv")
+#             continue
+
+#         if info is None:
+#             broken_links.append(link)
+#             write_to_csv(broken_links, "broken_links.csv")
+#             continue
+#         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+
+#     df.to_csv("SMK_full_info.csv", index=False)
+#     write_to_csv(broken_links, "broken_links.csv")
+#     write_to_csv(scraping_errors, "scraping_errors.csv")
+#     return df
 
 
 def get_info_for_all_links():
     df = pd.DataFrame()
 
-    links = read_links()
-    # links[0:3000]
-    # links[3000:6000]
-    # links[6000:9000]
-    # links[9000:12000]
-    # links[12000:]
-
+    links_and_pages = read_list_from_pickle()
     broken_links = []
-    scraping_errors = []
 
-    for link in tqdm(links):
-        # print(link)
-        # print("broken: ", len(broken_links))
-        # print("errors: ", len(scraping_errors))
-        # print("\n")
-
-        try:
-            info = get_info_for_link(link)
-        except Exception as _:
-            scraping_errors.append(link)
-            write_to_csv(scraping_errors, "scraping_errors.csv")
-            continue
-
-        if info is None:
+    for (link, page) in tqdm(links_and_pages):
+        if page is None:
             broken_links.append(link)
-            write_to_csv(broken_links, "broken_links.csv")
             continue
+        
+        info = get_info_from_page(link, page) 
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
     df.to_csv("SMK_full_info.csv", index=False)
     write_to_csv(broken_links, "broken_links.csv")
-    write_to_csv(scraping_errors, "scraping_errors.csv")
     return df
 
 
@@ -327,7 +337,7 @@ async def download_link(url, session):
 
 async def get_all_html_pages():
     urls = read_links()
-    urls = urls[:1000]
+    # urls = urls[:200] # TODO: for testing
 
     my_conn = aiohttp.TCPConnector(limit = 100)
     async with aiohttp.ClientSession(connector = my_conn) as session:

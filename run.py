@@ -33,6 +33,9 @@ if __name__ == "__main__":
     # end = time.time()
     # print(end - start)
 
-    asyncio.run(get_all_html_pages())
+    # asyncio.run(get_all_html_pages())
     # pages = read_list_from_pickle()
     # print(get_info_from_page(pages[0][0], pages[0][1]))
+
+    asyncio.run(get_all_html_pages())
+    get_info_for_all_links()
