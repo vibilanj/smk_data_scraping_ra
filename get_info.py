@@ -3,6 +3,9 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from tqdm import tqdm
+import asyncio
+import aiohttp
+import pickle
 
 def convert_to_int(num_str):
     if num_str == "":
@@ -154,22 +157,12 @@ def get_nilai_akreditasi(data):
     nilai_akreditasi_akhir = convert_to_int(get_info_from_text(text, "Nilai Akhir : "))
     return nilai_akreditasi_tahun, nilai_akreditasi_akhir
 
-def get_info_for_link(link):
-    while True:
-        try:
-            response = requests.get(link, timeout=5)
-            if response.status_code == 200:
-                break
-            elif response.status_code == 404 or response.status_code == 500:
-                return None
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-
-    soup = BeautifulSoup(response.content, 'html.parser')
+def get_info_from_page(link, page):
+    soup = BeautifulSoup(page, 'html.parser')
     body = soup.body
 
     info = {}
-    info["link"] = link
+    info["link"] = link 
 
     npsn, name, address = get_npsn_name_address(body.h4.contents)
     info["npsn"] = npsn 
@@ -262,12 +255,24 @@ def get_info_for_link(link):
     return info
 
 
+def get_info_for_link(link):
+    while True:
+        try:
+            response = requests.get(link, timeout=5)
+            if response.status_code == 200:
+                break
+            elif response.status_code == 404 or response.status_code == 500:
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
+
+    return get_info_from_page(link, response.content)
+
+
 def get_info_for_all_links():
     df = pd.DataFrame()
 
     links = read_links()
-    links = links[12400:] # TEMPORARY
-
     # links[0:3000]
     # links[3000:6000]
     # links[6000:9000]
@@ -278,10 +283,10 @@ def get_info_for_all_links():
     scraping_errors = []
 
     for link in tqdm(links):
-        print(link)
-        print("broken: ", len(broken_links))
-        print("errors: ", len(scraping_errors))
-        print("\n")
+        # print(link)
+        # print("broken: ", len(broken_links))
+        # print("errors: ", len(scraping_errors))
+        # print("\n")
 
         try:
             info = get_info_for_link(link)
@@ -300,3 +305,37 @@ def get_info_for_all_links():
     write_to_csv(broken_links, "broken_links.csv")
     write_to_csv(scraping_errors, "scraping_errors.csv")
     return df
+
+
+def write_list_to_pickle(list_):
+    with open("SMK_pages", "wb") as fp:
+        pickle.dump(list_, fp)
+
+
+def read_list_from_pickle():
+    with open("SMK_pages", 'rb') as fp:
+        return pickle.load(fp)
+
+
+async def download_link(url, session):
+    async with session.get(url) as response:
+        result = await response.text()
+        if response.status != 200:
+            return None
+        return (url, result)
+
+
+async def get_all_html_pages():
+    urls = read_links()
+    urls = urls[:1000]
+
+    my_conn = aiohttp.TCPConnector(limit = 100)
+    async with aiohttp.ClientSession(connector = my_conn) as session:
+        tasks = []
+        for url in urls:
+            task = asyncio.ensure_future(download_link(url = url, session = session))
+            tasks.append(task)
+        pages = await asyncio.gather(*tasks, return_exceptions = True)
+
+    write_list_to_pickle(pages)
+    return pages
