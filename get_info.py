@@ -325,7 +325,7 @@ def get_info_for_all_links():
     df.to_csv("SMK_full_info.csv", index = False)
     write_to_csv(broken_links, "broken_links.csv")
     print(f"Decode errors: {decode_errors}")
-    print(f"Timeout errors: {timeout_errors})
+    print(f"Timeout errors: {timeout_errors}")
     return df
 
 
