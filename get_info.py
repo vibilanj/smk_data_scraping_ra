@@ -298,10 +298,10 @@ def get_info_from_page(link, page):
 #     return df
 
 
-def get_info_for_all_links():
+def get_info_for_all_links(part):
     df = pd.DataFrame()
 
-    links_and_pages = read_list_from_pickle()
+    links_and_pages = read_list_from_pickle(part)
     broken_links = []
 
     for link_page in tqdm(links_and_pages):
@@ -313,21 +313,21 @@ def get_info_for_all_links():
         info = get_info_from_page(link, page) 
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
-    df.to_csv("SMK_full_info_1.csv", index = False)
+    df.to_csv(f"SMK_full_info_{part}.csv", index = False)
 
     print("Number of broken links: ", len(broken_links))
-    write_to_csv(broken_links, "broken_links_1.csv")
+    write_to_csv(broken_links, f"broken_links_{part}.csv")
 
     return df
 
 
-def write_list_to_pickle(list_):
-    with open("SMK_pages.pickle", "wb") as fp:
+def write_list_to_pickle(list_, part):
+    with open(f"SMK_pages_{part}.pickle", "wb") as fp:
         pickle.dump(list_, fp)
 
 
-def read_list_from_pickle():
-    with open("SMK_pages.pickle", 'rb') as fp:
+def read_list_from_pickle(part):
+    with open(f"SMK_pages_{part}.pickle", 'rb') as fp:
         return pickle.load(fp)
 
 
@@ -342,14 +342,20 @@ async def download_link(url, session):
         return (url, None)
 
 
-async def get_all_html_pages():
+async def get_all_html_pages(part):
     urls = read_links()
 
-    # urls = urls[:3000]
-    # urls = urls[3000:6000]
-    # urls = urls[6000:9000]
-    # urls = urls[9000:12000]
-    # urls = urls[12000:]
+    match part:
+        case 1:
+            urls = urls[:3000]
+        case 2:
+            urls = urls[3000:6000]
+        case 3:
+            urls = urls[6000:9000]
+        case 4:
+            urls = urls[9000:12000]
+        case 5:
+            urls = urls[12000:]
 
     my_conn = aiohttp.TCPConnector(limit = 100)
     async with aiohttp.ClientSession(connector = my_conn) as session:
@@ -359,5 +365,5 @@ async def get_all_html_pages():
             tasks.append(task)
         pages = await asyncio.gather(*tasks, return_exceptions = True)
 
-    write_list_to_pickle(pages)
+    write_list_to_pickle(pages, part)
     return pages
