@@ -51,4 +51,15 @@ if __name__ == "__main__":
 
     # links = read_from_csv("broken_links_combined.csv")
     # print(links)
-    get_info_for_all_links_with_scraping()
+    # get_info_for_all_links_with_scraping()
+
+    # links = read_from_csv("broken_links_second.csv")
+    # link = links[0]
+    # response = requests.get(link, timeout = 5)
+    # info = get_info_from_broken_page(link, response.content)
+    # print(info)
+
+    # get_info_for_broken_links()
+    # get_info_for_scrape_error_links()
+
+    combine_info_csvs()

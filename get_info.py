@@ -14,6 +14,8 @@ def convert_to_int(num_str):
 
 
 def convert_to_float(num_str):
+    if num_str == "":
+        return None
     return float(num_str.replace(",", ""))
 
 
@@ -274,8 +276,7 @@ def get_info_for_link(link):
 def get_info_for_all_links_with_scraping():
     df = pd.DataFrame()
 
-    # links = read_links()
-    links = read_from_csv("broken_links_combined.csv")
+    links = read_links()
     broken_links = []
     scraping_errors = []
 
@@ -369,7 +370,14 @@ def combine_info_csvs():
         "SMK_full_info_4.csv",
         "SMK_full_info_5.csv"
         ]
+    # file_list = [
+    #     "SMK_full_info_combined.csv",
+    #     "SMK_full_info_retry.csv",
+    #     "SMK_full_info_missing_tables.csv",
+    #     "SMK_full_info_scrape_error.csv"
+    # ]
     df = pd.concat(map(pd.read_csv, file_list), ignore_index=True) 
+    print(len(df))
     df.to_csv("SMK_full_info_combined.csv", index = False)
     
 
@@ -386,3 +394,151 @@ def combine_broken_links_csvs():
         links = read_from_csv(file)
         broken_links.extend(links)
     write_to_csv(broken_links, "broken_links_combined.csv")
+
+
+def get_info_from_broken_page_or_scrape_error(link, page, error_type):
+    soup = BeautifulSoup(page, 'lxml')
+    body = soup.body
+
+    info = {}
+    info["link"] = link 
+
+    npsn, name, address = get_npsn_name_address(body.h4.contents)
+    info["npsn"] = npsn 
+    info["name"] = name 
+    info["address"] = address 
+
+    ul_list = body.find_all('ul', class_="list-group list-group")
+    
+    akreditasi, kepala_sekolah, operator = get_detail_dapodik(ul_list[0])
+    info["akreditasi"] = akreditasi
+    info["kepala_sekolah"] = kepala_sekolah
+    info["operator"] = operator
+
+    summary_divs = body.find_all('div', class_ = "row")[2].find_all('div')
+    
+    guru, siswa_l, siswa_p, rombongan_belajar = get_summary_1(summary_divs[0])
+    info["guru"] = guru
+    info["siswa_l"] = siswa_l
+    info["siswa_p"] = siswa_p
+    info["rombongan_belajar"] = rombongan_belajar
+
+    kurikulum, penyelenggaraan, mbs, semester_data = get_summary_2(summary_divs[1])
+    info["kurikulum"] = kurikulum
+    info["penyelenggaraan"] = penyelenggaraan
+    info["mbs"] = mbs 
+    info["semester_data"] = semester_data
+
+    akses_internet, sumber_listrik, daya_listrik, luas_tanah_m2 = get_summary_3(summary_divs[2])
+    info["akses_internet"] = akses_internet
+    info["sumber_listrik"] = sumber_listrik
+    info["daya_listrik"] = daya_listrik
+    info["luas_tanah_m2"] = luas_tanah_m2
+
+    ruang_kelas, laboratorium, perpustakaan, sanitasi_siswa = get_summary_4(summary_divs[3])
+    info["ruang_kelas"] = ruang_kelas
+    info["laboratorium"] = laboratorium
+    info["perpustakaan"] = perpustakaan
+    info["sanitasi_siswa"] = sanitasi_siswa
+
+    if error_type == "scrape_error":
+        info["r_siswa_rombel"] = None
+        info["r_siswa_ruang_kelas"] = None
+        info["r_siswa_guru"] = None
+        info["p_guru_kualifikasi"] = None
+        info["p_guru_sertifikasi"] = None
+        info["p_guru_pns"] = None
+        info["p_ruang_kelas_layak"] = None
+    else:
+        r_siswa_rombel, r_siswa_ruang_kelas, r_siswa_guru, p_guru_kualifikasi,\
+            p_guru_sertifikasi, p_guru_pns, p_ruang_kelas_layak= get_proses_pembelajaran(ul_list[1])
+        info["r_siswa_rombel"] = r_siswa_rombel
+        info["r_siswa_ruang_kelas"] = r_siswa_ruang_kelas
+        info["r_siswa_guru"] = r_siswa_guru
+        info["p_guru_kualifikasi"] = p_guru_kualifikasi
+        info["p_guru_sertifikasi"] = p_guru_sertifikasi
+        info["p_guru_pns"] = p_guru_pns
+        info["p_ruang_kelas_layak"] = p_ruang_kelas_layak
+
+    info["guru_status_pns"] = None
+    info["guru_status_gtt"] = None
+    info["guru_status_gty"] = None
+    info["guru_status_honor"] = None
+
+    info["guru_sertifikasi"] = None
+    info["guru_belum_sertifikasi"] = None
+
+    info["guru_ijazah_kurang_dari_S1"] = None
+    info["guru_ijazah_S1_atau_lebih"] = None
+    info["guru_ijazah_data_kosong"] = None
+
+    info["guru_jk_laki_laki"] = None
+    info["guru_jk_perempuan"] = None
+
+    info["tk_status_pns"] = None
+    info["tk_status_honor"] = None
+
+    info["tk_total"] = None
+    info["tk_ijazah_kurang_dari_S1"] = None
+    info["tk_ijazah_S1_atau_lebih"] = None
+    info["tk_ijazah_data_kosong"] = None
+
+    info["tk_jk_laki_laki"] = None
+    info["tk_jk_perempuan"] = None
+
+    info["nilai_akreditasi_tahun"] = ""
+    info["nilai_akreditasi_akhir"] = None
+
+    return info
+
+
+def get_info_for_broken_links():
+    df = pd.DataFrame()
+
+    links = read_from_csv("broken_links_second.csv")
+    broken_links = []
+    scraping_errors = []
+
+    for link in tqdm(links):
+        try:
+            response = requests.get(link, timeout=5)
+            info = get_info_from_broken_page_or_scrape_error(link, response.content, "broken")
+        except Exception as _:
+            scraping_errors.append(link)
+            continue
+
+        if info is None:
+            broken_links.append(link)
+            continue
+        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+
+    df.to_csv("SMK_full_info.csv", index=False)
+    write_to_csv(broken_links, "broken_links.csv")
+    write_to_csv(scraping_errors, "scraping_errors.csv")
+    return df
+
+
+def get_info_for_scrape_error_links():
+    df = pd.DataFrame()
+
+    links = read_from_csv("scraping_errors.csv")
+    broken_links = []
+    scraping_errors = []
+
+    for link in tqdm(links):
+        try:
+            response = requests.get(link, timeout=5)
+            info = get_info_from_broken_page_or_scrape_error(link, response.content, "scrape_error")
+        except Exception as _:
+            scraping_errors.append(link)
+            continue
+
+        if info is None:
+            broken_links.append(link)
+            continue
+        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+
+    df.to_csv("SMK_full_info.csv", index=False)
+    write_to_csv(broken_links, "broken_links.csv")
+    write_to_csv(scraping_errors, "scraping_errors.csv")
+    return df
