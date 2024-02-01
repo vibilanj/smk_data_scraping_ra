@@ -257,45 +257,46 @@ def get_info_from_page(link, page):
 
 
 # TODO: remove original function
-# def get_info_for_link(link):
-#     while True:
-#         try:
-#             response = requests.get(link, timeout=5)
-#             if response.status_code == 200:
-#                 break
-#             elif response.status_code == 404 or response.status_code == 500:
-#                 return None
-#         except requests.exceptions.RequestException as e:
-#             print(f"An error occurred: {e}")
+def get_info_for_link(link):
+    while True:
+        try:
+            response = requests.get(link, timeout=5)
+            if response.status_code == 200:
+                break
+            elif response.status_code == 404 or response.status_code == 500:
+                return None
+        except requests.exceptions.RequestException as e:
+            print(f"An error occurred: {e}")
 
-#     return get_info_from_page(link, response.content)
+    return get_info_from_page(link, response.content)
 
 
-# def get_info_for_all_links_with_scraping ():
-#     df = pd.DataFrame()
+def get_info_for_all_links_with_scraping():
+    df = pd.DataFrame()
 
-#     links = read_links()
-#     broken_links = []
-#     scraping_errors = []
+    # links = read_links()
+    links = read_from_csv("broken_links_combined.csv")
+    broken_links = []
+    scraping_errors = []
 
-#     for link in tqdm(links):
-#         try:
-#             info = get_info_for_link(link)
-#         except Exception as _:
-#             scraping_errors.append(link)
-#             write_to_csv(scraping_errors, "scraping_errors.csv")
-#             continue
+    for link in tqdm(links):
+        try:
+            info = get_info_for_link(link)
+        except Exception as _:
+            scraping_errors.append(link)
+            write_to_csv(scraping_errors, "scraping_errors.csv")
+            continue
 
-#         if info is None:
-#             broken_links.append(link)
-#             write_to_csv(broken_links, "broken_links.csv")
-#             continue
-#         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+        if info is None:
+            broken_links.append(link)
+            write_to_csv(broken_links, "broken_links.csv")
+            continue
+        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
-#     df.to_csv("SMK_full_info.csv", index=False)
-#     write_to_csv(broken_links, "broken_links.csv")
-#     write_to_csv(scraping_errors, "scraping_errors.csv")
-#     return df
+    df.to_csv("SMK_full_info.csv", index=False)
+    write_to_csv(broken_links, "broken_links.csv")
+    write_to_csv(scraping_errors, "scraping_errors.csv")
+    return df
 
 
 def write_list_to_pickle(list_, part):
@@ -371,7 +372,6 @@ def combine_info_csvs():
         "SMK_full_info_5.csv"
         ]
     df = pd.concat(map(pd.read_csv, file_list), ignore_index=True) 
-    print(len(df))
     df.to_csv("SMK_full_info_combined.csv", index = False)
     
 
@@ -385,6 +385,6 @@ def combine_broken_links_csvs():
         ]
     broken_links = []
     for file in file_list:
-        links = read_from_csv(file)
-        broken_links.append(links)
+        links = read_from_csv(file)[0]
+        broken_links.extend(links)
     write_to_csv(broken_links, "broken_links_combined.csv")

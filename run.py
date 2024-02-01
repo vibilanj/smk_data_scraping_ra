@@ -47,4 +47,8 @@ if __name__ == "__main__":
     # get_info_for_all_links(part)
 
     # combine_info_csvs()
-    combine_broken_links_csvs()
+    # combine_broken_links_csvs()
+
+    links = read_from_csv("broken_links_combined.csv")
+    print(links)
+    # get_info_for_all_links_with_scraping()
