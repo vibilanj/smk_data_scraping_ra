@@ -303,8 +303,18 @@ def get_info_for_all_links():
 
     links_and_pages = read_list_from_pickle()
     broken_links = []
+    decode_errors = 0
+    timeout_errors = 0
 
-    for (link, page) in tqdm(links_and_pages):
+    for link_page in tqdm(links_and_pages):
+        if isinstance(link_page, UnicodeDecodeError):
+            decode_errors += 1
+            continue
+        elif isinstance(link_page, TimeoutError):
+            timeout_errors += 1
+            continue
+
+        link, page = link_page
         if page is None:
             broken_links.append(link)
             continue
@@ -314,6 +324,8 @@ def get_info_for_all_links():
 
     df.to_csv("SMK_full_info.csv", index = False)
     write_to_csv(broken_links, "broken_links.csv")
+    print(f"Decode errors: {decode_errors}")
+    print(f"Timeout errors: {timeout_errors})
     return df
 
 

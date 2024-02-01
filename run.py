@@ -42,7 +42,7 @@ if __name__ == "__main__":
     # end = time.time()
     # print(f"Downloading pages finished: {end - start}s \n")
     
-    # get_info_for_all_links()
+    get_info_for_all_links()
 
-    link = read_list_from_pickle()[1981]
-    # print()
+    # link = read_list_from_pickle()[1981]
+    # print(isinstance(link, UnicodeDecodeError))
