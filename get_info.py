@@ -303,17 +303,8 @@ def get_info_for_all_links():
 
     links_and_pages = read_list_from_pickle()
     broken_links = []
-    decode_errors = 0
-    timeout_errors = 0
 
     for link_page in tqdm(links_and_pages):
-        if isinstance(link_page, UnicodeDecodeError):
-            decode_errors += 1
-            continue
-        elif isinstance(link_page, TimeoutError):
-            timeout_errors += 1
-            continue
-
         link, page = link_page
         if page is None:
             broken_links.append(link)
@@ -322,34 +313,43 @@ def get_info_for_all_links():
         info = get_info_from_page(link, page) 
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
-    df.to_csv("SMK_full_info.csv", index = False)
-    write_to_csv(broken_links, "broken_links.csv")
-    print(f"Decode errors: {decode_errors}")
-    print(f"Timeout errors: {timeout_errors}")
+    df.to_csv("SMK_full_info_1.csv", index = False)
+
+    print("Number of broken links: ", len(broken_links))
+    write_to_csv(broken_links, "broken_links_1.csv")
+
     return df
 
 
 def write_list_to_pickle(list_):
-    with open("SMK_pages", "wb") as fp:
+    with open("SMK_pages.pickle", "wb") as fp:
         pickle.dump(list_, fp)
 
 
 def read_list_from_pickle():
-    with open("SMK_pages", 'rb') as fp:
+    with open("SMK_pages.pickle", 'rb') as fp:
         return pickle.load(fp)
 
 
 async def download_link(url, session):
-    async with session.get(url) as response:
-        result = await response.text()
-        if response.status != 200:
-            return (url, None)
-        return (url, result)
+    try:
+        async with session.get(url) as response:
+            if response.status != 200:
+                return (url, None)
+            result = await response.text()
+            return (url, result)
+    except Exception as _:
+        return (url, None)
 
 
 async def get_all_html_pages():
     urls = read_links()
-    # urls = urls[:200] # TODO: for testing
+
+    # urls = urls[:3000]
+    # urls = urls[3000:6000]
+    # urls = urls[6000:9000]
+    # urls = urls[9000:12000]
+    # urls = urls[12000:]
 
     my_conn = aiohttp.TCPConnector(limit = 100)
     async with aiohttp.ClientSession(connector = my_conn) as session:
