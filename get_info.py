@@ -312,7 +312,7 @@ def get_info_for_all_links():
         info = get_info_from_page(link, page) 
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
-    df.to_csv("SMK_full_info.csv", index=False)
+    df.to_csv("SMK_full_info.csv", index = False)
     write_to_csv(broken_links, "broken_links.csv")
     return df
 
@@ -331,7 +331,7 @@ async def download_link(url, session):
     async with session.get(url) as response:
         result = await response.text()
         if response.status != 200:
-            return None
+            return (url, None)
         return (url, result)
 
 
