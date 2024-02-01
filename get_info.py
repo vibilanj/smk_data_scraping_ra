@@ -1,4 +1,4 @@
-from get_links import read_links, write_to_csv
+from get_links import read_links, write_to_csv, read_from_csv
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -298,29 +298,6 @@ def get_info_from_page(link, page):
 #     return df
 
 
-def get_info_for_all_links(part):
-    df = pd.DataFrame()
-
-    links_and_pages = read_list_from_pickle(part)
-    broken_links = []
-
-    for link_page in tqdm(links_and_pages):
-        link, page = link_page
-        if page is None:
-            broken_links.append(link)
-            continue
-        
-        info = get_info_from_page(link, page) 
-        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
-
-    df.to_csv(f"SMK_full_info_{part}.csv", index = False)
-
-    print("Number of broken links: ", len(broken_links))
-    write_to_csv(broken_links, f"broken_links_{part}.csv")
-
-    return df
-
-
 def write_list_to_pickle(list_, part):
     with open(f"SMK_pages_{part}.pickle", "wb") as fp:
         pickle.dump(list_, fp)
@@ -360,3 +337,54 @@ async def get_all_html_pages(part):
 
     write_list_to_pickle(pages, part)
     return pages
+
+
+def get_info_for_all_links(part):
+    df = pd.DataFrame()
+
+    links_and_pages = read_list_from_pickle(part)
+    broken_links = []
+
+    for link_page in tqdm(links_and_pages):
+        link, page = link_page
+        if page is None:
+            broken_links.append(link)
+            continue
+        
+        info = get_info_from_page(link, page) 
+        df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
+
+    df.to_csv(f"SMK_full_info_{part}.csv", index = False)
+
+    print("Number of broken links: ", len(broken_links))
+    write_to_csv(broken_links, f"broken_links_{part}.csv")
+
+    return df
+
+
+def combine_info_csvs():
+    file_list = [
+        "SMK_full_info_1.csv",
+        "SMK_full_info_2.csv",
+        "SMK_full_info_3.csv",
+        "SMK_full_info_4.csv",
+        "SMK_full_info_5.csv"
+        ]
+    df = pd.concat(map(pd.read_csv, file_list), ignore_index=True) 
+    print(len(df))
+    df.to_csv("SMK_full_info_combined.csv", index = False)
+    
+
+def combine_broken_links_csvs():
+    file_list = [
+        "broken_links_1.csv",
+        "broken_links_2.csv",
+        "broken_links_3.csv",
+        "broken_links_4.csv",
+        "broken_links_5.csv"
+        ]
+    broken_links = []
+    for file in file_list:
+        links = read_from_csv(file)
+        broken_links.append(links)
+    write_to_csv(broken_links, "broken_links_combined.csv")

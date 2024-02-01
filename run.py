@@ -37,11 +37,14 @@ if __name__ == "__main__":
     # pages = read_list_from_pickle()
     # print(get_info_from_page(pages[0][0], pages[0][1]))
 
-    part = 3
+    # part = 1
 
-    start = time.time()
-    asyncio.run(get_all_html_pages(part))
-    end = time.time()
-    print(f"Downloading pages finished: {end - start}s \n")
+    # start = time.time()
+    # asyncio.run(get_all_html_pages(part))
+    # end = time.time()
+    # print(f"Downloading pages finished: {end - start}s \n")
 
-    get_info_for_all_links(part)
+    # get_info_for_all_links(part)
+
+    # combine_info_csvs()
+    combine_broken_links_csvs()
