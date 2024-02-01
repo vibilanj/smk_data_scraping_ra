@@ -1,3 +1,6 @@
 .venv/
 __pycache__/
 *.pickle
+
+SMK_full_info_*.csv
+broken_links_*.csv

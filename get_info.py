@@ -345,17 +345,10 @@ async def download_link(url, session):
 async def get_all_html_pages(part):
     urls = read_links()
 
-    match part:
-        case 1:
-            urls = urls[:3000]
-        case 2:
-            urls = urls[3000:6000]
-        case 3:
-            urls = urls[6000:9000]
-        case 4:
-            urls = urls[9000:12000]
-        case 5:
-            urls = urls[12000:]
+    step = 3000
+    start = (part - 1) * step
+    end = part * step
+    urls = urls[start:end]
 
     my_conn = aiohttp.TCPConnector(limit = 100)
     async with aiohttp.ClientSession(connector = my_conn) as session:
