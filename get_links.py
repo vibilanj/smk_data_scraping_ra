@@ -15,7 +15,7 @@ def read_from_csv(filename):
     with open(filename, newline='') as file:
         rd = csv.reader(file)
         links = list(rd)
-    return links
+    return links[0]
 
 
 def write_to_csv(ls, filename):
@@ -54,7 +54,4 @@ def get_unique_SMK_links():
 
 
 def read_links():
-    with open("SMK_links.csv", newline='') as file:
-        rd = csv.reader(file)
-        links = list(rd)
-    return links[0]
+    read_from_csv("SMK_links.csv")

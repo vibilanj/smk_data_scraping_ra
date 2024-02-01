@@ -284,12 +284,10 @@ def get_info_for_all_links_with_scraping():
             info = get_info_for_link(link)
         except Exception as _:
             scraping_errors.append(link)
-            write_to_csv(scraping_errors, "scraping_errors.csv")
             continue
 
         if info is None:
             broken_links.append(link)
-            write_to_csv(broken_links, "broken_links.csv")
             continue
         df = pd.concat([df, pd.DataFrame([info])], ignore_index=True)
 
@@ -385,6 +383,6 @@ def combine_broken_links_csvs():
         ]
     broken_links = []
     for file in file_list:
-        links = read_from_csv(file)[0]
+        links = read_from_csv(file)
         broken_links.extend(links)
     write_to_csv(broken_links, "broken_links_combined.csv")
