@@ -66,9 +66,7 @@ if __name__ == "__main__":
     # combine_info_csvs()
     
     # New variables needed
-    start = time.time()
-    results = asyncio.run(scrape_all_pages(1))
-    end = time.time()
-    print(end - start)
-
-    # combine_and_save("dates.csv")
+    # results = asyncio.run(scrape_all_pages(1))
+    # results = asyncio.run(scrape_all_pages(2))
+    # results = asyncio.run(scrape_all_pages(3))
+    combine_and_save("dates.csv")
