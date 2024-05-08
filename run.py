@@ -1,5 +1,5 @@
-from get_links import *
-from get_info import *
+# from get_links import *
+# from get_info import *
 from get_dates import *
 
 import asyncio
@@ -66,5 +66,9 @@ if __name__ == "__main__":
     # combine_info_csvs()
     
     # New variables needed
-    rs = read_ids()
-    print(len(rs))
+    start = time.time()
+    results = asyncio.run(scrape_all_pages(1))
+    end = time.time()
+    print(end - start)
+
+    # combine_and_save("dates.csv")
