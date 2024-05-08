@@ -1,5 +1,6 @@
 from get_links import *
 from get_info import *
+from get_dates import *
 
 import asyncio
 import time
@@ -62,4 +63,8 @@ if __name__ == "__main__":
     # get_info_for_broken_links()
     # get_info_for_scrape_error_links()
 
-    combine_info_csvs()
+    # combine_info_csvs()
+    
+    # New variables needed
+    rs = read_ids()
+    print(len(rs))
