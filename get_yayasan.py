@@ -91,6 +91,11 @@ def combine_npsn_to_yayasan(filename):
     write_to_csv(HEADER_1, data, filename)
 
 
+# TODO: 
+# Download all yayasan pages into pickles
+# Scrape yayasan info 
+# Scrape yayasan owned school info
+
 def run():
     # TESTING INDIVIDUAL PAGES FOR SCHOOL
     # import requests
