@@ -1,6 +1,7 @@
 # from get_links import *
 # from get_info import *
-from get_dates import *
+# from get_dates import *
+from get_yayasan import *
 
 import asyncio
 import time
@@ -69,4 +70,7 @@ if __name__ == "__main__":
     # results = asyncio.run(scrape_all_pages(1))
     # results = asyncio.run(scrape_all_pages(2))
     # results = asyncio.run(scrape_all_pages(3))
-    combine_and_save("dates.csv")
+    # combine_and_save("dates.csv")
+
+    # Yayasan information needed
+    run()
