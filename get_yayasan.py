@@ -102,10 +102,13 @@ def run():
     # print(info)
 
     # GETTING SCHOOL INFO
-    asyncio.run(scrape_all_schools(1))
+    # asyncio.run(scrape_all_schools(1))
     # asyncio.run(scrape_all_schools(2))
     # asyncio.run(scrape_all_schools(3))
     # asyncio.run(scrape_all_schools(4))
     # asyncio.run(scrape_all_schools(5))
     # asyncio.run(scrape_all_schools(6))
     # combine_npsn_to_yayasan("npsn_to_yayasan.csv")
+
+    # TESTING INDIVIDUAL PAGES FOR YAYASAN
+    pass
