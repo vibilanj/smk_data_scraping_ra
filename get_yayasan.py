@@ -1,16 +1,19 @@
 import csv
 import pickle
+from io import StringIO
 
 import aiohttp
 import asyncio
-import pandas
-
 from bs4 import BeautifulSoup
+import pandas as pd
 
 
 BASE_URL = "https://referensi.data.kemdikbud.go.id/pendidikan/npsn/"
 HEADER_1 = ["npsn", "naungan", "npyp", "link"]
-
+HEADER_2 = [
+    "nypy", "name", "address", "pimpinan_yayasan", "operator_yayasan",
+    "kode_pos", "no_pendirian_yayasan", "tgl_pendirian_yayasan", "num_schools"
+    ]
 
 # IO
 def read_from_csv(filename):
@@ -139,14 +142,68 @@ def combine_yayasan_pages():
     write_to_pickle(data, "yayasan.pickle")
 
 
-def scrape_yayasan_page():
-    pass
+# Parsing pages for information
+def get_nypy_and_name(s):
+    head, tail = s.split(')', 1)
+    nypy = head[1:]
+    name = tail.strip()
+    return nypy, name
+
+
+def get_info_from_text(text, label):
+    info = text.split(label)[-1].split("\n")[0]
+    info = info.replace('\xa0', ' ')
+    info = info.replace('\r', '')
+    return info.strip()
+
+
+def scrape_yayasan_page(page):
+    soup = BeautifulSoup(page, "lxml")
+    body = soup.body
+    if body.find("h4") is None: # Checking for empty pages
+        return [], pd.DataFrame()
+    
+    header = body.select_one("h4[class=page-header]").contents
+    nypy, name = get_nypy_and_name(header[0])
+    address = header[1].text.strip()
+
+    pimpinan = get_info_from_text(body.text, "Pimpinan Yayasan :") 
+    operator = get_info_from_text(body.text, "Operator Yayasan :") 
+    kode_pos = get_info_from_text(body.text, "Kode Pos :") 
+    no_pendirian = get_info_from_text(body.text, "No. Pendirian Yayasan :") 
+    tgl_pendirian = get_info_from_text(body.text, "Tgl Pendirian Yayasan :") 
+
+    table = body.select_one("table")
+    yayasan_schools = pd.read_html(StringIO(str(table)))[0]
+    yayasan_schools.insert(0, "NYPY", nypy, False)
+    no_schools = yayasan_schools.shape[0]
+
+    yayasan_info = [
+        nypy, name, address, pimpinan, operator, kode_pos,
+        no_pendirian, tgl_pendirian, no_schools
+    ]
+    return yayasan_info, yayasan_schools
 
 
 def scrape_yayasan_pages():
-    data = read_from_pickle("yayasan.pickle")
-    # TODO: get info for all and put in csv
-    print(len(data))
+    pages = read_from_pickle("yayasan.pickle")
+
+    yayasan_info = []
+    yayasan_schools = pd.DataFrame()
+
+    for l, page in pages:
+        try:
+            info, schools = scrape_yayasan_page(page)
+        except:
+            print(l)
+            break
+        yayasan_info.append(info)
+        yayasan_schools = yayasan_schools._append(schools)
+    yayasan_schools = yayasan_schools.reset_index()
+    yayasan_schools = yayasan_schools.drop("index", axis = 1)
+
+    write_to_csv(HEADER_2, yayasan_info, "yayasan_info.csv")
+    yayasan_schools.to_csv("yayasan_schools.csv", index=False)
 
 
 def run():
@@ -175,5 +232,4 @@ def run():
     # asyncio.run(download_yayasan_pages(3))
     # asyncio.run(download_yayasan_pages(4))
     # combine_yayasan_pages()
-
     scrape_yayasan_pages()
