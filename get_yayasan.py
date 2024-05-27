@@ -3,6 +3,7 @@ import pickle
 
 import aiohttp
 import asyncio
+import pandas
 
 from bs4 import BeautifulSoup
 
@@ -91,10 +92,62 @@ def combine_npsn_to_yayasan(filename):
     write_to_csv(HEADER_1, data, filename)
 
 
-# TODO: 
-# Download all yayasan pages into pickles
-# Scrape yayasan info 
-# Scrape yayasan owned school info
+# Yayasan Pages
+def get_unique_yayasan_links(filename):
+    _, rows = read_from_csv(filename)
+    # from 16337 to 11025
+    links = set(map(lambda x: x[-1], rows))
+    links.remove("")
+    write_to_pickle(list(links), "unique_yayasan.pickle")
+
+
+async def download_yayasan_page(url, session):
+    try:
+        async with session.get(url) as response:
+            if response.status != 200:
+                return [url, None]
+            result = await response.text()
+            return [url, result]
+    except Exception as _:
+        return [url, None]
+
+
+async def download_yayasan_pages(part):
+    links = read_from_pickle("unique_yayasan.pickle")
+
+    step = 3000
+    start = (part - 1) * step
+    end = part * step
+    links = links[start:end]
+    
+    my_conn = aiohttp.TCPConnector(limit = 100, ssl = False)
+    async with aiohttp.ClientSession(connector = my_conn) as session:
+        tasks = []
+        for link in links:
+            task = asyncio.ensure_future(download_yayasan_page(link, session))
+            tasks.append(task)
+        pages = await asyncio.gather(*tasks, return_exceptions = True)
+
+    write_to_pickle(pages, f"yayasan_{part}.pickle")
+    return pages
+
+
+def combine_yayasan_pages():
+    data = []
+    for i in range(1, 5):
+        data += read_from_pickle(f"yayasan_{i}.pickle")
+    write_to_pickle(data, "yayasan.pickle")
+
+
+def scrape_yayasan_page():
+    pass
+
+
+def scrape_yayasan_pages():
+    data = read_from_pickle("yayasan.pickle")
+    # TODO: get info for all and put in csv
+    print(len(data))
+
 
 def run():
     # TESTING INDIVIDUAL PAGES FOR SCHOOL
@@ -115,5 +168,12 @@ def run():
     # asyncio.run(scrape_all_schools(6))
     # combine_npsn_to_yayasan("npsn_to_yayasan.csv")
 
-    # TESTING INDIVIDUAL PAGES FOR YAYASAN
-    pass
+    # GETTING YAYASAN LINKS AND PAGES
+    # get_unique_yayasan_links("npsn_to_yayasan.csv")
+    # asyncio.run(download_yayasan_pages(1))
+    # asyncio.run(download_yayasan_pages(2))
+    # asyncio.run(download_yayasan_pages(3))
+    # asyncio.run(download_yayasan_pages(4))
+    # combine_yayasan_pages()
+
+    scrape_yayasan_pages()
